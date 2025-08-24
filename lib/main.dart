@@ -1,10 +1,13 @@
+import 'package:celestia/firebase_options.dart';
 import 'package:celestia/landing_page.dart';
 import 'package:celestia/signup.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const CelestiaApp());
 }
 

@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:celestia/login.dart';
+import 'package:celestia/signup.dart';
 import 'package:flutter/material.dart';
 
 class LandingPage extends StatefulWidget {
@@ -83,12 +85,18 @@ class _LandingPageState extends State<LandingPage>
                 Row(mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> SignUpPage()));
+                      },
+                      style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20), foregroundColor: Colors.white, backgroundColor: Colors.black),
                       child: const Text("Sign Up"),
                     ),
                     const SizedBox(width: 18,),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> const LoginPage()));
+                      },
+                      style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20), foregroundColor: Colors.white, backgroundColor: Colors.black),
                       child: const Text("Log In"),
                     ),
                   ],
