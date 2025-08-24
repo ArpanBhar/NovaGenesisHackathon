@@ -1,10 +1,27 @@
 import 'package:celestia/signup.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'starry_background.dart'; // <-- put the StarryBackground + StarPainter code in this file
+import 'starry_background.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  LoginPage({super.key});
+  final emailEditingController = TextEditingController();
+  final passEditingController = TextEditingController();
+
+  Future<void> loginUser(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailEditingController.text.trim(),
+        password: passEditingController.text.trim(),
+      );
+      if(!context.mounted) return;
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      if(!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 2), content: Text("${e.message}")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +36,7 @@ class LoginPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -34,6 +51,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 TextField(
+                  controller: emailEditingController,
                   decoration: InputDecoration(
                     labelText: "Email",
                     border: OutlineInputBorder(
@@ -44,6 +62,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 TextField(
+                  controller: passEditingController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: "Password",
@@ -66,13 +85,13 @@ class LoginPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {loginUser(context);},
                   child: const Text("Log In"),
                 ),
                 const SizedBox(height: 15),
                 RichText(
                   text: TextSpan(
-                    text: "Don’t have an account? ",
+                    text: "Don't have an account? ",
                     style: const TextStyle(color: Colors.black87, fontSize: 14),
                     children: [
                       TextSpan(
@@ -83,6 +102,7 @@ class LoginPage extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
+                            Navigator.pop(context);
                             Navigator.push(
                               context,
                               MaterialPageRoute(

@@ -2,6 +2,7 @@ import 'package:celestia/login.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'starry_background.dart';
 
@@ -9,12 +10,25 @@ class SignUpPage extends StatelessWidget {
   SignUpPage({super.key});
   final emailEditingController = TextEditingController();
   final passEditingController = TextEditingController();
-  void createUser() async{
-    final user = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailEditingController.text.trim(), 
-      password: passEditingController.text.trim()
-    );
-    print(user);
+  final nameEditingController = TextEditingController();
+  Future<void> createUser(BuildContext context) async {
+    try {
+      final user = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailEditingController.text.trim(),
+        password: passEditingController.text.trim(),
+      );
+      await FirebaseFirestore.instance.collection("users").doc(user.user!.uid) // set document ID to the user's UID
+    .set({
+      'name': nameEditingController.text.trim(),
+      'images': <String>[],
+      'constellation': <String>[],
+    });
+      if(!context.mounted) return;
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      if(!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 2), content: Text("${e.message}")));
+    }
   }
 
   @override
@@ -44,6 +58,17 @@ class SignUpPage extends StatelessWidget {
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
+                TextField(
+                  controller: nameEditingController,
+                  decoration: InputDecoration(
+                    labelText: "Name",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                  ),
+                ),
+                const SizedBox(height: 15),
                 TextField(
                   controller: emailEditingController,
                   decoration: InputDecoration(
@@ -79,7 +104,9 @@ class SignUpPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {createUser();},
+                  onPressed: () {
+                    createUser(context);
+                  },
                   child: const Text("Sign Up"),
                 ),
                 const SizedBox(height: 15),
@@ -96,10 +123,11 @@ class SignUpPage extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
+                            Navigator.pop(context);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const LoginPage(),
+                                builder: (_) => LoginPage(),
                               ),
                             );
                           },

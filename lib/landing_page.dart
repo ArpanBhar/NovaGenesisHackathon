@@ -94,7 +94,7 @@ class _LandingPageState extends State<LandingPage>
                     const SizedBox(width: 18,),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> const LoginPage()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> LoginPage()));
                       },
                       style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20), foregroundColor: Colors.white, backgroundColor: Colors.black),
                       child: const Text("Log In"),
