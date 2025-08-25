@@ -52,6 +52,7 @@ class _DashboardPageState extends State<DashboardPage> {
         fileName = files[0].name;
         _toggleUploadBox(); // close overlay
         _uploadFileToSupabase(selectedFile!);
+        analyzeWithGemini(selectedFile!);
       }
     });
   }
@@ -105,7 +106,6 @@ class _DashboardPageState extends State<DashboardPage> {
       },
       body: jsonEncode(body),
     );
-
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       final outputText = result["candidates"][0]["content"]["parts"][0]["text"];
@@ -116,7 +116,7 @@ class _DashboardPageState extends State<DashboardPage> {
         "constellation": FieldValue.arrayUnion([outputText]),
       }, SetOptions(merge: true));
     } else {
-      print("Gemini API failed: ${response.body}");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Some error occurred")));
     }
   }
 
@@ -196,6 +196,7 @@ class _DashboardPageState extends State<DashboardPage> {
               icon: const Icon(Icons.add, color: Colors.white),
               onPressed: _toggleUploadBox,
             ),
+            const SizedBox(width: 8,),
             ElevatedButton(
               onPressed: () {
                 FirebaseAuth.instance.signOut();
@@ -232,9 +233,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 );
                 if (images.isEmpty) {
                   return Center(
-                    child: Text(
-                      "Add your first image by clicking the + icon",
-                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        "Add your first image by clicking the + icon",
+                        style: TextStyle(color: Colors.white, fontSize: 24),
+                      ),
                     ),
                   ); //Show a text at the center saying Try adding images
                 }
