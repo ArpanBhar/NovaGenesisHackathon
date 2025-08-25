@@ -68,6 +68,104 @@ class _DashboardPageState extends State<DashboardPage> {
     reader.readAsArrayBuffer(file);
     return completer.future;
   }
+  Future<String> getFunFact(String constellationName) async {
+  final body = {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text":
+                "Give me one short, fun and interesting fact about the constellation $constellationName. Keep it under 30 words."
+          }
+        ]
+      }
+    ]
+  };
+
+  final response = await http.post(
+    Uri.parse(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    ),
+    headers: {
+      "x-goog-api-key": "AIzaSyAtKBs-tRVZZp4I42owbsnPg59kKX1Snjc",
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode(body),
+  );
+
+  if (response.statusCode == 200) {
+    final result = jsonDecode(response.body);
+    return result["candidates"][0]["content"]["parts"][0]["text"] ??
+        "No fact found.";
+  } else {
+    return "Could not fetch a fun fact.";
+  }
+}
+
+void _showImageOverlay(BuildContext context, String imageUrl, String constellation) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.black.withValues(alpha: 0.9),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: FutureBuilder<String>(
+          future: getFunFact(constellation),
+          builder: (context, snapshot) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              width: 500,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      height: 300,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.broken_image, size: 80, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    constellation,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (snapshot.connectionState == ConnectionState.waiting)
+                    const CircularProgressIndicator(color: Colors.white)
+                  else
+                    Text(
+                      snapshot.hasData ? "Fun Fact: ${snapshot.data}" : "No Fun Fact available",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 52, 52, 52),
+                      foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    child: const Text("Close"),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
 
   Future<void> analyzeWithGemini(html.File file) async {
     final bytes = await _readFile(file);
@@ -263,44 +361,51 @@ class _DashboardPageState extends State<DashboardPage> {
                       final text = index < constellations.length
                           ? constellations[index]
                           : 'Analyzing..';
-                      return Card(
-                        color: const Color.fromARGB(255, 45, 45, 45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(12),
-                                ),
-                                child: Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.broken_image, size: 40),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                text,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
+                      return GestureDetector(
+  onTap: () {
+    if (text != "Analyzing..") {
+      _showImageOverlay(context, imageUrl, text);
+    }
+  },
+  child: Card(
+    color: const Color.fromARGB(255, 45, 45, 45),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(12),
+            ),
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.broken_image, size: 40),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.white,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
+  ),
+);
                     },
                   ),
                 );

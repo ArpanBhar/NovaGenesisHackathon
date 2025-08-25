@@ -70,6 +70,7 @@ class SignUpPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 TextField(
+                  keyboardType: TextInputType.emailAddress,
                   controller: emailEditingController,
                   decoration: InputDecoration(
                     labelText: "Email",
